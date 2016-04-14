@@ -9,12 +9,12 @@ import System.Environment.Compat (lookupEnv)
 import System.Hapistrano (ReleaseFormat(..))
 
 import qualified Control.Monad as Monad
-import qualified Data.Maybe as Maybe
 import qualified System.Console.GetOpt as GetOpt
 import qualified System.Environment as Environment
 import qualified System.Exit as Exit
 import qualified System.Exit.Compat as Exit
 import qualified System.IO as IO
+import qualified Text.Read as Read
 
 -- | Rolls back to previous release.
 rollback :: Hap.Config -> IO ()
@@ -51,6 +51,7 @@ configFromEnv = do
   repository <- maybe (Exit.die (noEnv "REPOSITORY")) return maybeRepository
   revision <- maybe (Exit.die (noEnv "REVISION")) return maybeRevision
 
+  port           <- lookupEnv "PORT"
   host           <- lookupEnv "HOST"
   buildScript    <- lookupEnv "BUILD_SCRIPT"
   restartCommand <- lookupEnv "RESTART_COMMAND"
@@ -62,9 +63,11 @@ configFromEnv = do
                     , Hap.revision       = revision
                     , Hap.buildScript    = buildScript
                     , Hap.restartCommand = restartCommand
+                    , Hap.port           = parsePort port
                     }
   where
     noEnv env = env ++ " environment variable does not exist"
+    parsePort maybePort = maybePort >>= Read.readMaybe
 
 data HapCommand
   = HapDeploy
